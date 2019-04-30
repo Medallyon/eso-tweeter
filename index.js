@@ -1,6 +1,7 @@
 const request = require("request")
 , Twitter = require("twitter");
 
+// load env-vars for local deploys
 require("dotenv").config();
 
 const twitterClient = new Twitter({
@@ -19,9 +20,9 @@ const WEBHOOK_REQUEST_DEFAULT_OPTIONS = {
 const twitterFollowIdFilter = new Map();
 populateTwitterUserIds().then(function()
 {
-    console.log(twitterFollowIdFilter.keys().join(","));
-    twitterClient.stream("statuses/filter", { follow: twitterFollowIdFilter.keys().join(",") }, function(stream)
+    twitterClient.stream("statuses/filter", { follow: Array.from(twitterFollowIdFilter.keys()).join(",") }, function(stream)
     {
+        console.log("Now streaming `statuses/filter` for the following accounts:\n" + Array.from(twitterFollowIdFilter.values()).join(", "));
         stream.on("data", function(tweet)
         {
             if (!tweet)
@@ -33,7 +34,7 @@ populateTwitterUserIds().then(function()
             if (!tweet.user)
                 return;
 
-            // hard-code exclusive ESO filter for Bethesda Support 
+            // hard-code exclusive ESO filter for Bethesda Support
             if (tweet.user.id_str === "718475378751381504" && !tweet.entities.hashtags.includes("ESO"))
                 return;
 
@@ -48,7 +49,7 @@ populateTwitterUserIds().then(function()
 
         stream.on("error", console.error);
     });
-});
+}).catch(console.error);
 
 function populateTwitterUserIds()
 {
