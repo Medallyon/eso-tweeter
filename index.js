@@ -19,8 +19,8 @@ const WEBHOOK_REQUEST_DEFAULT_OPTIONS = {
 const twitterFollowIdFilter = new Map();
 populateTwitterUserIds().then(function()
 {
-    console.log(twitterFollowIdFilter.join(","));
-    twitterClient.stream("statuses/filter", { follow: twitterFollowIdFilter.join(",") }, function(stream)
+    console.log(twitterFollowIdFilter.keys().join(","));
+    twitterClient.stream("statuses/filter", { follow: twitterFollowIdFilter.keys().join(",") }, function(stream)
     {
         stream.on("data", function(tweet)
         {
