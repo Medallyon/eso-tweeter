@@ -23,6 +23,7 @@ populateTwitterUserIds().then(function()
     twitterClient.stream("statuses/filter", { follow: Array.from(twitterFollowIdFilter.keys()).join(",") }, function(stream)
     {
         console.log("Now streaming `statuses/filter` for the following accounts:\n" + Array.from(twitterFollowIdFilter.values()).join(", "));
+
         stream.on("data", function(tweet)
         {
             if (!tweet)
@@ -38,13 +39,19 @@ populateTwitterUserIds().then(function()
             if (tweet.user.id_str === "718475378751381504" && !tweet.entities.hashtags.includes("ESO"))
                 return;
 
+            console.log(`\nSending POST request to WEBHOOK for a new tweet from ${tweet.user.name}...`);
+
             request.post(Object.assign({
                 body: {
                     content: `https://twitter.com/${tweet.user.screen_name}/status/${tweet.id_str}`,
                     username: tweet.user.name,
                     avatar_url: tweet.user.profile_image_url_https
                 }
-            }, WEBHOOK_REQUEST_DEFAULT_OPTIONS));
+            }, WEBHOOK_REQUEST_DEFAULT_OPTIONS), function(res)
+            {
+                if (res.statusCode.toString().startsWith('2'))
+                    console.log(`Successfully sent ${tweet.user.name}'s tweet to WEBHOOK.`);
+            });
         });
 
         stream.on("error", console.error);
