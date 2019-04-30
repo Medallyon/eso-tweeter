@@ -32,6 +32,10 @@ populateTwitterUserIds().then(function()
             if (tweet.in_reply_to_status_id || tweet.in_reply_to_user_id)
                 return;
 
+            if ((tweet.retweeted_status || tweet.quoted_status) &&
+                !twitterFollowIdFilter.has(tweet.user.id_str))
+                return;
+
             if (!tweet.user)
                 return;
 
@@ -47,9 +51,12 @@ populateTwitterUserIds().then(function()
                     username: tweet.user.name,
                     avatar_url: tweet.user.profile_image_url_https
                 }
-            }, WEBHOOK_REQUEST_DEFAULT_OPTIONS), function(res)
+            }, WEBHOOK_REQUEST_DEFAULT_OPTIONS), function(err, res)
             {
-                if (res.statusCode.toString().startsWith('2'))
+                if (err)
+                    return console.error(err);
+
+                if (res && res.statusCode.toString().startsWith('2'))
                     console.log(`Successfully sent ${tweet.user.name}'s tweet to WEBHOOK.`);
             });
         });
@@ -72,7 +79,7 @@ function populateTwitterUserIds()
                 usersProcessed++;
 
                 if (err)
-                    return console.error(err);
+                    return reject(err);
 
                 twitterFollowIdFilter.set(user.id_str, screenName);
 
